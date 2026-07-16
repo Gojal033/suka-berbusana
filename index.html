@@ -3,104 +3,87 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#20251f">
-  <meta name="description" content="Dashboard katalog dan stok jaket suka.berbusana">
-  <title>suka.berbusana — Katalog Jaket</title>
+  <meta name="theme-color" content="#28372d">
+  <meta name="description" content="Katalog jaket preloved pilihan suka.berbusana">
+  <title>suka.berbusana — Gaya Lama, Cerita Baru</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="icon" href="./logo-suka-berbusana.png" type="image/png">
   <link rel="apple-touch-icon" href="./logo-suka-berbusana.png">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <header class="site-header">
-    <div class="brand-wrap">
-      <img class="brand-mark" src="./logo-suka-berbusana.png" alt="Logo suka.berbusana">
-      <div>
-        <p class="eyebrow">SECONDWEAR CURATED</p>
-        <h1>suka.berbusana</h1>
-      </div>
-    </div>
-    <div class="header-actions">
-      <button class="button secondary" id="install-app" type="button" hidden>Pasang aplikasi</button>
-      <button class="button primary" id="add-product" type="button">
-        <span aria-hidden="true">＋</span> Tambah jaket
-      </button>
-    </div>
+    <a class="brand" href="./" aria-label="Beranda suka.berbusana">
+      <img src="./logo-suka-berbusana.png" alt="">
+      <span><small>SECONDWEAR CURATED</small><strong>suka.berbusana</strong></span>
+    </a>
+    <button class="icon-button" id="open-search" type="button" aria-label="Fokus ke pencarian">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 4 4"></path></svg>
+    </button>
   </header>
 
   <main>
-    <section class="hero" aria-labelledby="hero-title">
+    <section class="hero">
       <div>
-        <p class="eyebrow">DASHBOARD KATALOG</p>
-        <h2 id="hero-title">Kelola koleksi tanpa ribet.</h2>
-        <p class="hero-copy">Harga, ukuran, foto, dan status penjualan tersimpan rapi dalam satu tempat.</p>
+        <p class="eyebrow">PILIHAN PRELOVED BERKARAKTER</p>
+        <h1>Gaya lama.<br><em>Cerita baru.</em></h1>
+        <p>Temukan jaket pilihan dengan ukuran yang jelas, kondisi terkurasi, dan karakter yang tidak pasaran.</p>
+        <a class="button light" href="#koleksi">Lihat koleksi</a>
       </div>
-      <img class="hero-logo" src="./logo-suka-berbusana.png" alt="Suka.berbusana — Gaya Lama, Cerita Baru">
+      <img src="./logo-suka-berbusana.png" alt="Logo suka.berbusana">
     </section>
 
-    <section class="stats" aria-label="Ringkasan stok">
-      <article><span>Total koleksi</span><strong id="stat-total">0</strong><small>item tercatat</small></article>
-      <article><span>Tersedia</span><strong id="stat-available">0</strong><small id="stat-sold">0 terjual</small></article>
-      <article><span>Sudah diberi harga</span><strong id="stat-priced">0</strong><small id="stat-unpriced">0 belum diisi</small></article>
-      <article class="accent-stat"><span>Nilai stok</span><strong id="stat-value">Rp0</strong><small>stok tersedia</small></article>
+    <section class="benefits" aria-label="Keunggulan toko">
+      <div><strong id="available-count">0</strong><span>koleksi tersedia</span></div>
+      <div><strong>Ukuran jelas</strong><span>LD dan panjang tercantum</span></div>
+      <div><strong>Foto detail</strong><span>lihat barang lebih dekat</span></div>
     </section>
 
-    <section class="toolbar" aria-label="Pencarian dan filter">
-      <label class="search-field">
-        <span class="sr-only">Cari jaket</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 4 4"></path></svg>
-        <input id="search" type="search" placeholder="Cari nama, merek, warna…">
-      </label>
-      <label><span class="sr-only">Merek</span><select id="brand-filter"><option value="all">Semua merek</option></select></label>
-      <label><span class="sr-only">Status</span><select id="status-filter"><option value="all">Semua status</option><option>Tersedia</option><option>Dipesan</option><option>Terjual</option></select></label>
-      <label><span class="sr-only">Urutkan</span><select id="sort"><option value="newest">Terbaru</option><option value="name">Nama A–Z</option><option value="price-high">Harga tertinggi</option><option value="price-low">Harga terendah</option></select></label>
-      <button class="icon-button" id="more-actions" type="button" aria-expanded="false" aria-controls="action-menu" aria-label="Menu lainnya">•••</button>
-      <div class="action-menu" id="action-menu" hidden>
-        <button type="button" id="export-data">Ekspor cadangan</button>
-        <button type="button" id="import-data">Impor cadangan</button>
-        <input id="import-file" type="file" accept="application/json" hidden>
+    <section id="koleksi" class="catalog">
+      <div class="catalog-head">
+        <div><p class="eyebrow">KATALOG</p><h2>Temukan jaketmu</h2></div>
+        <p id="result-count">Memuat koleksi…</p>
       </div>
+      <div class="filters">
+        <label class="search-box">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 4 4"></path></svg>
+          <span class="sr-only">Cari produk</span>
+          <input id="search" type="search" placeholder="Cari jaket atau merek…">
+        </label>
+        <label><span class="sr-only">Merek</span><select id="brand-filter"><option value="all">Semua merek</option></select></label>
+        <label><span class="sr-only">Status</span><select id="status-filter"><option value="all">Semua status</option><option value="Tersedia">Tersedia</option><option value="Dipesan">Dipesan</option><option value="Terjual">Terjual</option></select></label>
+        <label><span class="sr-only">Urutkan</span><select id="sort"><option value="newest">Terbaru</option><option value="price-low">Harga terendah</option><option value="price-high">Harga tertinggi</option><option value="name">Nama A–Z</option></select></label>
+      </div>
+      <div class="notice" id="notice" hidden></div>
+      <section class="product-grid" id="product-grid" aria-live="polite"></section>
     </section>
-
-    <div class="catalog-heading">
-      <div><p class="eyebrow">INVENTORY</p><h2>Koleksi jaket</h2></div>
-      <p id="result-count">0 item</p>
-    </div>
-    <section class="product-grid" id="product-grid" aria-live="polite"></section>
   </main>
 
-  <footer><span>© suka.berbusana</span><span>Temukan gaya yang layak dicintai lagi.</span></footer>
+  <footer>
+    <div class="footer-brand"><img src="./logo-suka-berbusana.png" alt=""><div><strong>suka.berbusana</strong><span>Gaya Lama, Cerita Baru</span></div></div>
+    <a href="./admin.html">Login penjual</a>
+  </footer>
 
-  <dialog id="product-dialog">
-    <form id="product-form" method="dialog">
-      <div class="dialog-head">
-        <div><p class="eyebrow">DATA PRODUK</p><h2 id="dialog-title">Tambah jaket</h2></div>
-        <button class="close-button" id="close-dialog" type="button" aria-label="Tutup">×</button>
+  <dialog id="detail-dialog">
+    <button class="dialog-close" id="close-detail" type="button" aria-label="Tutup">×</button>
+    <div class="detail-layout">
+      <div>
+        <div class="detail-main-photo" id="detail-main-photo"></div>
+        <div class="thumbnails" id="detail-thumbnails"></div>
       </div>
-      <input id="item-id" type="hidden">
-      <div class="photo-picker" id="photo-preview">
-        <div class="photo-empty"><span>＋</span><strong>Tambahkan foto</strong><small>JPG, PNG, atau WEBP</small></div>
+      <div class="detail-copy">
+        <p class="eyebrow" id="detail-brand"></p>
+        <h2 id="detail-name"></h2>
+        <div class="detail-price" id="detail-price"></div>
+        <span class="status" id="detail-status"></span>
+        <dl><div><dt>Lebar dada</dt><dd id="detail-ld"></dd></div><div><dt>Panjang</dt><dd id="detail-length"></dd></div></dl>
+        <p id="detail-description"></p>
       </div>
-      <input id="photo-input" type="file" accept="image/*" hidden>
-      <button class="button secondary full" id="choose-photo" type="button">Pilih foto</button>
-      <div class="form-grid">
-        <label class="wide">Nama jaket <input id="item-name" required placeholder="Contoh: Adidas Tracktop Biru"></label>
-        <label>Merek <input id="item-brand" required placeholder="Adidas"></label>
-        <label>Status <select id="item-status"><option>Tersedia</option><option>Dipesan</option><option>Terjual</option></select></label>
-        <label>Lebar dada/LD (cm) <input id="item-ld" required placeholder="104 atau 104–110"></label>
-        <label>Panjang/P (cm) <input id="item-p" required placeholder="64"></label>
-        <label class="wide">Harga jual (Rp) <input id="item-price" type="number" min="0" step="1000" inputmode="numeric" placeholder="150000"></label>
-      </div>
-      <div class="form-actions">
-        <button class="button danger" id="delete-product" type="button" hidden>Hapus</button>
-        <span></span>
-        <button class="button secondary" id="cancel-dialog" type="button">Batal</button>
-        <button class="button primary" type="submit">Simpan jaket</button>
-      </div>
-    </form>
+    </div>
   </dialog>
 
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="./app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./supabase-config.js"></script>
+  <script src="./buyer.js"></script>
 </body>
 </html>

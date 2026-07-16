@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#28372d">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Admin — suka.berbusana</title>
+  <link rel="icon" href="./logo-suka-berbusana.png" type="image/png">
+  <link rel="stylesheet" href="./admin.css">
+</head>
+<body>
+  <main class="login-shell" id="login-shell">
+    <section class="login-card">
+      <img src="./logo-suka-berbusana.png" alt="Logo suka.berbusana">
+      <p class="eyebrow">AREA PENJUAL</p><h1>Masuk ke dashboard</h1>
+      <p>Gunakan akun admin yang telah dibuat di Supabase.</p>
+      <form id="login-form">
+        <label>Email<input id="login-email" type="email" autocomplete="username" required></label>
+        <label>Password<input id="login-password" type="password" autocomplete="current-password" required></label>
+        <button class="button primary" type="submit">Masuk</button>
+      </form>
+      <p class="form-error" id="login-error"></p>
+      <a href="./">← Kembali ke katalog pembeli</a>
+    </section>
+  </main>
+
+  <div id="admin-app" hidden>
+    <header class="admin-header">
+      <a class="brand" href="./admin.html"><img src="./logo-suka-berbusana.png" alt=""><span><small>ADMIN DASHBOARD</small><strong>suka.berbusana</strong></span></a>
+      <div><a class="button secondary" href="./" target="_blank">Lihat katalog</a><button class="button secondary" id="logout" type="button">Keluar</button><button class="button primary" id="add-product" type="button">＋ Tambah jaket</button></div>
+    </header>
+    <main class="admin-main">
+      <section class="welcome"><div><p class="eyebrow">INVENTORY CONTROL</p><h1>Kelola koleksi.</h1><p id="admin-email"></p></div><button class="button import" id="import-legacy" type="button">Impor data lama</button></section>
+      <section class="stats"><article><span>Total produk</span><strong id="stat-total">0</strong></article><article><span>Tersedia</span><strong id="stat-available">0</strong></article><article><span>Terjual</span><strong id="stat-sold">0</strong></article><article class="accent"><span>Nilai stok</span><strong id="stat-value">Rp0</strong></article></section>
+      <section class="toolbar"><label class="search"><span class="sr-only">Cari</span><input id="search" type="search" placeholder="Cari produk atau merek…"></label><label><span class="sr-only">Status</span><select id="status-filter"><option value="all">Semua status</option><option>Tersedia</option><option>Dipesan</option><option>Terjual</option></select></label></section>
+      <div class="section-head"><div><p class="eyebrow">PRODUK</p><h2>Koleksi jaket</h2></div><p id="result-count"></p></div>
+      <section class="admin-grid" id="admin-grid"></section>
+    </main>
+  </div>
+
+  <dialog id="product-dialog">
+    <form id="product-form">
+      <div class="dialog-head"><div><p class="eyebrow">DATA PRODUK</p><h2 id="dialog-title">Tambah jaket</h2></div><button class="close" id="close-dialog" type="button" aria-label="Tutup">×</button></div>
+      <input id="product-id" type="hidden">
+      <div class="form-grid">
+        <label class="wide">Nama jaket<input id="product-name" required placeholder="Contoh: Adidas Tracktop Biru"></label>
+        <label>Merek<input id="product-brand" placeholder="Adidas"></label>
+        <label>Status<select id="product-status"><option>Tersedia</option><option>Dipesan</option><option>Terjual</option></select></label>
+        <label>Lebar dada/LD (cm)<input id="product-ld" required placeholder="104 atau 104–110"></label>
+        <label>Panjang/P (cm)<input id="product-length" required placeholder="64"></label>
+        <label>Harga jual (Rp)<input id="product-price" type="number" min="0" step="1000" inputmode="numeric" placeholder="150000"></label>
+        <label class="check"><input id="product-published" type="checkbox" checked> Tampilkan di katalog pembeli</label>
+        <label class="wide">Deskripsi<textarea id="product-description" rows="3" placeholder="Kondisi, bahan, warna, atau catatan lainnya"></textarea></label>
+      </div>
+      <section class="photos"><div class="photo-head"><div><strong>Foto produk</strong><small>Maksimal 8 MB per foto</small></div><button class="button secondary" id="choose-photos" type="button">＋ Pilih foto</button></div><input id="photo-input" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden><div class="photo-list" id="photo-list"></div></section>
+      <p class="form-error" id="form-error"></p>
+      <div class="form-actions"><button class="button danger" id="delete-product" type="button" hidden>Hapus produk</button><span></span><button class="button secondary" id="cancel-dialog" type="button">Batal</button><button class="button primary" id="save-product" type="submit">Simpan</button></div>
+    </form>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./supabase-config.js"></script>
+  <script src="./admin.js"></script>
+</body>
+</html>

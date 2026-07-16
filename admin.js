@@ -1,0 +1,61 @@
+(() => {
+  "use strict";
+  const ADMIN_UID = "65e3f961-3d82-418d-9d30-5bcb348c7207";
+  const el = id => document.getElementById(id);
+  const money = value => Number(value)>0?new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(value):"Belum ada harga";
+  const esc = value => String(value??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[c]);
+  let products=[],session=null,pendingFiles=[],removedImages=[],toastTimer;
+
+  function toast(message){el("toast").textContent=message;el("toast").classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el("toast").classList.remove("show"),2800);}
+  function imageUrl(path){return window.sb.storage.from("product-images").getPublicUrl(path).data.publicUrl;}
+  function sortedImages(p){return [...(p.product_images||[])].sort((a,b)=>a.sort_order-b.sort_order);}
+  function visible(){const q=el("search").value.trim().toLowerCase(),s=el("status-filter").value;return products.filter(p=>(!q||`${p.name} ${p.brand||""}`.toLowerCase().includes(q))&&(s==="all"||p.status===s));}
+  function render(){
+    const rows=visible(),available=products.filter(p=>p.status==="Tersedia");
+    el("stat-total").textContent=products.length;el("stat-available").textContent=available.length;el("stat-sold").textContent=products.filter(p=>p.status==="Terjual").length;el("stat-value").textContent=money(available.reduce((sum,p)=>sum+(Number(p.price)||0),0));el("result-count").textContent=`${rows.length} dari ${products.length} produk`;
+    el("admin-grid").innerHTML=rows.length?rows.map(p=>{const img=sortedImages(p)[0];return `<article class="admin-card"><div class="admin-photo">${img?`<img src="${esc(imageUrl(img.image_path))}" alt="Foto ${esc(p.name)}" loading="lazy">`:'<div class="photo-empty">Belum ada foto</div>'}<span class="badge">${esc(p.status)}</span></div><div class="admin-copy"><small>${esc(p.brand||"Koleksi")}${p.is_published?"":" • Draf"}</small><h3>${esc(p.name)}</h3><p>LD ${esc(p.ld)} cm · P ${esc(p.length)} cm</p><div class="admin-bottom"><strong>${esc(money(p.price))}</strong><button type="button" data-edit="${esc(p.id)}">Edit</button></div></div></article>`;}).join(""):'<div class="empty"><strong>Belum ada produk.</strong><p>Tambahkan produk baru atau impor data lama dari perangkat ini.</p></div>';
+  }
+  async function loadProducts(){const {data,error}=await window.sb.from("products").select("*, product_images(*)").order("created_at",{ascending:false});if(error){toast("Gagal memuat produk: "+error.message);return;}products=data||[];render();}
+  function setAuthView(currentSession){session=currentSession;const valid=session?.user?.id===ADMIN_UID;el("login-shell").hidden=valid;el("admin-app").hidden=!valid;if(valid){el("admin-email").textContent=session.user.email;loadProducts();}else if(session){window.sb.auth.signOut();el("login-error").textContent="Akun ini tidak memiliki akses admin.";}}
+
+  el("login-form").onsubmit=async event=>{event.preventDefault();el("login-error").textContent="";const button=event.submitter;button.disabled=true;button.textContent="Memeriksa…";const {data,error}=await window.sb.auth.signInWithPassword({email:el("login-email").value.trim(),password:el("login-password").value});button.disabled=false;button.textContent="Masuk";if(error){el("login-error").textContent="Email atau password tidak sesuai.";return;}setAuthView(data.session);};
+  el("logout").onclick=async()=>{await window.sb.auth.signOut();setAuthView(null);};
+
+  function resetPhotos(){pendingFiles=[];removedImages=[];el("photo-input").value="";}
+  function renderPhotoList(existing=[]){
+    const old=existing.filter(i=>!removedImages.some(r=>r.id===i.id)).map(i=>`<div class="photo-item"><img src="${esc(imageUrl(i.image_path))}" alt=""><button type="button" data-remove-existing="${esc(i.id)}" aria-label="Hapus foto">×</button></div>`);
+    const fresh=pendingFiles.map((file,i)=>`<div class="photo-item pending"><img src="${URL.createObjectURL(file)}" alt=""><button type="button" data-remove-pending="${i}" aria-label="Batalkan foto">×</button></div>`);
+    el("photo-list").innerHTML=[...old,...fresh].join("")||'<div class="photo-empty">Belum ada foto</div>';
+  }
+  function openForm(product=null){
+    resetPhotos();el("product-form").reset();el("form-error").textContent="";el("dialog-title").textContent=product?"Edit jaket":"Tambah jaket";el("delete-product").hidden=!product;el("product-id").value=product?.id||"";el("product-name").value=product?.name||"";el("product-brand").value=product?.brand||"";el("product-status").value=product?.status||"Tersedia";el("product-ld").value=product?.ld||"";el("product-length").value=product?.length||"";el("product-price").value=product?.price||"";el("product-published").checked=product?product.is_published:true;el("product-description").value=product?.description||"";renderPhotoList(product?.product_images||[]);el("product-dialog").showModal();
+  }
+  function closeForm(){el("product-dialog").close();pendingFiles=[];removedImages=[];}
+  el("add-product").onclick=()=>openForm();el("close-dialog").onclick=closeForm;el("cancel-dialog").onclick=closeForm;el("choose-photos").onclick=()=>el("photo-input").click();
+  el("admin-grid").onclick=e=>{const b=e.target.closest("[data-edit]");if(b)openForm(products.find(p=>p.id===b.dataset.edit));};
+  el("photo-input").onchange=e=>{const files=[...e.target.files].filter(f=>f.type.startsWith("image/")&&f.size<=8*1024*1024);if(files.length!==e.target.files.length)toast("Sebagian file ditolak; gunakan JPG/PNG/WEBP maksimal 8 MB.");pendingFiles.push(...files);const p=products.find(row=>row.id===el("product-id").value);renderPhotoList(p?.product_images||[]);};
+  el("photo-list").onclick=e=>{const existing=e.target.closest("[data-remove-existing]"),pending=e.target.closest("[data-remove-pending]");const p=products.find(row=>row.id===el("product-id").value);if(existing){const image=p?.product_images?.find(i=>i.id===existing.dataset.removeExisting);if(image)removedImages.push(image);}if(pending)pendingFiles.splice(Number(pending.dataset.removePending),1);renderPhotoList(p?.product_images||[]);};
+
+  async function uploadFiles(productId,files,startOrder){for(let i=0;i<files.length;i+=1){const file=files[i],safe=file.name.toLowerCase().replace(/[^a-z0-9._-]+/g,"-");const path=`${productId}/${crypto.randomUUID()}-${safe}`;const uploaded=await window.sb.storage.from("product-images").upload(path,file,{contentType:file.type,upsert:false});if(uploaded.error)throw uploaded.error;const inserted=await window.sb.from("product_images").insert({product_id:productId,image_path:path,sort_order:startOrder+i});if(inserted.error)throw inserted.error;}}
+  el("product-form").onsubmit=async event=>{
+    event.preventDefault();if(!event.currentTarget.reportValidity())return;const save=el("save-product");save.disabled=true;save.textContent="Menyimpan…";el("form-error").textContent="";
+    try{const id=el("product-id").value,payload={name:el("product-name").value.trim(),brand:el("product-brand").value.trim()||null,status:el("product-status").value,ld:el("product-ld").value.trim(),length:el("product-length").value.trim(),price:el("product-price").value?Number(el("product-price").value):null,is_published:el("product-published").checked,description:el("product-description").value.trim()||null};let productId=id;if(id){const {error}=await window.sb.from("products").update(payload).eq("id",id);if(error)throw error;}else{const {data,error}=await window.sb.from("products").insert(payload).select().single();if(error)throw error;productId=data.id;}
+      if(removedImages.length){const paths=removedImages.map(i=>i.image_path);const ids=removedImages.map(i=>i.id);const removed=await window.sb.storage.from("product-images").remove(paths);if(removed.error)throw removed.error;const deleted=await window.sb.from("product_images").delete().in("id",ids);if(deleted.error)throw deleted.error;}
+      const current=products.find(p=>p.id===id);const remaining=(current?.product_images||[]).length-removedImages.length;await uploadFiles(productId,pendingFiles,Math.max(0,remaining));closeForm();await loadProducts();toast(id?"Perubahan produk disimpan.":"Produk baru ditambahkan.");
+    }catch(error){el("form-error").textContent=error.message||"Gagal menyimpan produk.";}finally{save.disabled=false;save.textContent="Simpan";}
+  };
+  el("delete-product").onclick=async()=>{const id=el("product-id").value,p=products.find(row=>row.id===id);if(!p||!confirm(`Hapus ${p.name} beserta semua fotonya?`))return;const paths=(p.product_images||[]).map(i=>i.image_path);if(paths.length)await window.sb.storage.from("product-images").remove(paths);const {error}=await window.sb.from("products").delete().eq("id",id);if(error){el("form-error").textContent=error.message;return;}closeForm();await loadProducts();toast("Produk dihapus.");};
+  el("search").oninput=render;el("status-filter").onchange=render;
+
+  function getLegacyData(){return new Promise(resolve=>{const request=indexedDB.open("suka-berbusana-db");request.onerror=()=>resolve([]);request.onupgradeneeded=()=>resolve([]);request.onsuccess=()=>{const db=request.result;if(!db.objectStoreNames.contains("products")){db.close();resolve([]);return;}const tx=db.transaction("products","readonly"),get=tx.objectStore("products").getAll();get.onsuccess=()=>{db.close();resolve(get.result||[]);};get.onerror=()=>{db.close();resolve([]);};};});}
+  const fallback=[
+    ["Jaket Puma Hitam","Puma","114","60"],["Adidas Bunga Biru","Adidas","104","60"],["Adidas Pink","Adidas","104","62"],["Nike Hitam Putih","Nike","108","61"],["Adidas Running Abu Hitam","Adidas","104–110","64"],["New Balance Full Print","New Balance","102","58"],["Adidas Big Logo","Adidas","102–104","63"],["K-Swiss Merah","K-Swiss","104","67"],["Ellesse","Ellesse","102","57"],["Uniqlo","Uniqlo","108","65–70"],["Adidas Running Putih","Adidas","100","62"],["Nepa Bulang","Nepa","110–112","67–72"],["Jaket Adidas Biru List Putih","Adidas","106","67"],["Jaket Umbro England","Umbro","120","71"],["Nike Dri-Fit Abu Hitam","Nike","104","66–69"],["Nike Running Biru","Nike","96","58"],["Nike Hoodie Logo Center","Nike","104","59"],["Nike Big Swoosh","Nike","110","65"],["Hoodie Champion","Champion","120","70"],["Hoodie Adidas","Adidas","104","68"],["Jaket Jeans GAP","GAP","94","60"],["Uniqlo Parasut Hijau","Uniqlo","120","70"],["Jaket Herington","Herington","110","63"]
+  ].map((r,i)=>({id:`j${String(i+1).padStart(2,"0")}`,name:r[0],brand:r[1],ld:r[2],p:r[3],price:null,status:"Tersedia",photo:null}));
+  el("import-legacy").onclick=async()=>{
+    if(products.length){toast("Impor hanya tersedia ketika database online masih kosong.");return;}if(!confirm("Impor data jaket lama ke database online?"))return;const button=el("import-legacy");button.disabled=true;button.textContent="Mengimpor…";
+    try{let legacy=await getLegacyData();if(!legacy.length)legacy=fallback;for(let i=0;i<legacy.length;i+=1){const old=legacy[i];button.textContent=`Mengimpor ${i+1}/${legacy.length}`;const {data,error}=await window.sb.from("products").insert({name:old.name,brand:old.brand||null,ld:String(old.ld||"-"),length:String(old.p||old.length||"-"),price:old.price?Number(old.price):null,status:old.status||"Tersedia",is_published:true}).select().single();if(error)throw error;if(old.photo instanceof Blob)await uploadFiles(data.id,[old.photo],0);}await loadProducts();toast(`${legacy.length} produk berhasil diimpor.`);}catch(error){toast("Impor terhenti: "+error.message);}finally{button.disabled=false;button.textContent="Impor data lama";}
+  };
+
+  window.sb.auth.getSession().then(({data})=>setAuthView(data.session));
+  window.sb.auth.onAuthStateChange((_event,newSession)=>{if(newSession?.access_token!==session?.access_token)setAuthView(newSession);});
+})();

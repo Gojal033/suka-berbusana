@@ -1,6 +1,12 @@
 # suka.berbusana
 
-Web app katalog dan stok jaket untuk suka.berbusana. Data serta foto disimpan di browser perangkat melalui IndexedDB. Gunakan fitur Ekspor Cadangan untuk memindahkan atau mencadangkan data.
+Web app katalog dan stok jaket untuk suka.berbusana.
+
+- `index.html`: katalog publik yang hanya membaca produk terbit.
+- `admin.html`: dashboard penjual dengan login Supabase.
+- Supabase Database: data produk dan ukuran.
+- Supabase Storage: beberapa foto per produk.
+- Row Level Security: publik hanya membaca; satu UID admin dapat mengubah data.
 
 ## GitHub Pages
 
