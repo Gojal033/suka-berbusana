@@ -1,0 +1,13 @@
+{
+  "name": "suka.berbusana",
+  "short_name": "suka.berbusana",
+  "description": "Dashboard katalog dan stok jaket suka.berbusana",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f2e9",
+  "theme_color": "#20251f",
+  "icons": [
+    {"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
