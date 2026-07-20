@@ -4,7 +4,7 @@
   const el = id => document.getElementById(id);
   const money = value => Number(value)>0?new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(value):"Belum ada harga";
   const esc = value => String(value??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[c]);
-  let products=[],session=null,pendingFiles=[],removedImages=[],toastTimer;
+  let products=[],session=null,recoveryMode=false,pendingFiles=[],removedImages=[],toastTimer;
 
   function toast(message){el("toast").textContent=message;el("toast").classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el("toast").classList.remove("show"),2800);}
   function imageUrl(path){return window.sb.storage.from("product-images").getPublicUrl(path).data.publicUrl;}
@@ -18,7 +18,11 @@
   async function loadProducts(){const {data,error}=await window.sb.from("products").select("*, product_images(*)").order("created_at",{ascending:false});if(error){toast("Gagal memuat produk: "+error.message);return;}products=data||[];render();}
   function setAuthView(currentSession){session=currentSession;const valid=session?.user?.id===ADMIN_UID;el("login-shell").hidden=valid;el("admin-app").hidden=!valid;if(valid){el("admin-email").textContent=session.user.email;loadProducts();}else if(session){window.sb.auth.signOut();el("login-error").textContent="Akun ini tidak memiliki akses admin.";}}
 
+  function showRecovery(){recoveryMode=true;el("login-shell").hidden=false;el("admin-app").hidden=true;el("login-card").hidden=true;el("recovery-card").hidden=false;}
+
   el("login-form").onsubmit=async event=>{event.preventDefault();el("login-error").textContent="";const button=event.submitter;button.disabled=true;button.textContent="Memeriksa…";const {data,error}=await window.sb.auth.signInWithPassword({email:el("login-email").value.trim(),password:el("login-password").value});button.disabled=false;button.textContent="Masuk";if(error){el("login-error").textContent="Email atau password tidak sesuai.";return;}setAuthView(data.session);};
+  el("forgot-password").onclick=async()=>{const email=el("login-email").value.trim();el("login-error").textContent="";el("login-message").textContent="";if(!email){el("login-error").textContent="Isi alamat email admin terlebih dahulu.";el("login-email").focus();return;}const button=el("forgot-password");button.disabled=true;button.textContent="Mengirim…";const redirectTo=`${location.origin}${location.pathname}`;const {error}=await window.sb.auth.resetPasswordForEmail(email,{redirectTo});button.disabled=false;button.textContent="Lupa password?";if(error){el("login-error").textContent="Gagal mengirim email: "+error.message;return;}el("login-message").textContent="Tautan pemulihan telah dikirim. Periksa kotak masuk dan folder Spam.";};
+  el("recovery-form").onsubmit=async event=>{event.preventDefault();const password=el("new-password").value,confirmPassword=el("confirm-password").value,errorBox=el("recovery-error"),button=event.submitter;errorBox.textContent="";if(password!==confirmPassword){errorBox.textContent="Kedua password belum sama.";return;}button.disabled=true;button.textContent="Menyimpan…";const {error}=await window.sb.auth.updateUser({password});if(error){errorBox.textContent="Gagal menyimpan: "+error.message;button.disabled=false;button.textContent="Simpan password baru";return;}await window.sb.auth.signOut();recoveryMode=false;el("recovery-card").hidden=true;el("login-card").hidden=false;el("login-shell").hidden=false;el("admin-app").hidden=true;el("login-message").textContent="Password berhasil diganti. Silakan masuk dengan password baru.";button.disabled=false;button.textContent="Simpan password baru";};
   el("logout").onclick=async()=>{await window.sb.auth.signOut();setAuthView(null);};
 
   function resetPhotos(){pendingFiles=[];removedImages=[];el("photo-input").value="";}
@@ -57,5 +61,5 @@
   };
 
   window.sb.auth.getSession().then(({data})=>setAuthView(data.session));
-  window.sb.auth.onAuthStateChange((_event,newSession)=>{if(newSession?.access_token!==session?.access_token)setAuthView(newSession);});
+  window.sb.auth.onAuthStateChange((event,newSession)=>{if(event==="PASSWORD_RECOVERY"){session=newSession;showRecovery();return;}if(!recoveryMode&&newSession?.access_token!==session?.access_token)setAuthView(newSession);});
 })();

@@ -11,7 +11,7 @@
 </head>
 <body>
   <main class="login-shell" id="login-shell">
-    <section class="login-card">
+    <section class="login-card" id="login-card">
       <img src="./logo-suka-berbusana.png" alt="Logo suka.berbusana">
       <p class="eyebrow">AREA PENJUAL</p><h1>Masuk ke dashboard</h1>
       <p>Gunakan akun admin yang telah dibuat di Supabase.</p>
@@ -20,8 +20,21 @@
         <label>Password<input id="login-password" type="password" autocomplete="current-password" required></label>
         <button class="button primary" type="submit">Masuk</button>
       </form>
+      <button class="text-button" id="forgot-password" type="button">Lupa password?</button>
       <p class="form-error" id="login-error"></p>
+      <p class="form-success" id="login-message"></p>
       <a href="./">← Kembali ke katalog pembeli</a>
+    </section>
+    <section class="login-card" id="recovery-card" hidden>
+      <img src="./logo-suka-berbusana.png" alt="Logo suka.berbusana">
+      <p class="eyebrow">PEMULIHAN AKUN</p><h1>Buat password baru</h1>
+      <p>Masukkan password baru minimal 8 karakter.</p>
+      <form id="recovery-form">
+        <label>Password baru<input id="new-password" type="password" autocomplete="new-password" minlength="8" required></label>
+        <label>Ulangi password<input id="confirm-password" type="password" autocomplete="new-password" minlength="8" required></label>
+        <button class="button primary" type="submit">Simpan password baru</button>
+      </form>
+      <p class="form-error" id="recovery-error"></p>
     </section>
   </main>
 
