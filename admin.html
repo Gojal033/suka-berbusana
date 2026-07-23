@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- suka.berbusana admin v4.1 - pemulihan password -->
+<!-- suka.berbusana admin v6 - harga beli dan harga jual -->
 <html lang="id">
 <head>
   <meta charset="utf-8">
@@ -46,7 +46,7 @@
     </header>
     <main class="admin-main">
       <section class="welcome"><div><p class="eyebrow">INVENTORY CONTROL</p><h1>Kelola koleksi.</h1><p id="admin-email"></p></div><button class="button import" id="import-legacy" type="button">Impor data lama</button></section>
-      <section class="stats"><article><span>Total produk</span><strong id="stat-total">0</strong></article><article><span>Tersedia</span><strong id="stat-available">0</strong></article><article><span>Terjual</span><strong id="stat-sold">0</strong></article><article class="accent"><span>Nilai stok</span><strong id="stat-value">Rp0</strong></article></section>
+      <section class="stats"><article><span>Total produk</span><strong id="stat-total">0</strong></article><article><span>Tersedia</span><strong id="stat-available">0</strong></article><article><span>Terjual</span><strong id="stat-sold">0</strong></article><article><span>Modal stok</span><strong id="stat-cost-value">Rp0</strong></article><article class="accent"><span>Potensi laba</span><strong id="stat-profit">Rp0</strong></article></section>
       <section class="toolbar"><label class="search"><span class="sr-only">Cari</span><input id="search" type="search" placeholder="Cari produk atau merek…"></label><label><span class="sr-only">Status</span><select id="status-filter"><option value="all">Semua status</option><option>Tersedia</option><option>Dipesan</option><option>Terjual</option></select></label></section>
       <div class="section-head"><div><p class="eyebrow">PRODUK</p><h2>Koleksi jaket</h2></div><p id="result-count"></p></div>
       <section class="admin-grid" id="admin-grid"></section>
@@ -63,6 +63,7 @@
         <label>Status<select id="product-status"><option>Tersedia</option><option>Dipesan</option><option>Terjual</option></select></label>
         <label>Lebar dada/LD (cm)<input id="product-ld" required placeholder="104 atau 104–110"></label>
         <label>Panjang/P (cm)<input id="product-length" required placeholder="64"></label>
+        <label>Harga beli (Rp)<input id="product-purchase-price" type="number" min="0" step="1000" inputmode="numeric" placeholder="75000"></label>
         <label>Harga jual (Rp)<input id="product-price" type="number" min="0" step="1000" inputmode="numeric" placeholder="150000"></label>
         <label class="check"><input id="product-published" type="checkbox" checked> Tampilkan di katalog pembeli</label>
         <label class="wide">Deskripsi<textarea id="product-description" rows="3" placeholder="Kondisi, bahan, warna, atau catatan lainnya"></textarea></label>

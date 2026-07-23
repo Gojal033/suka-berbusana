@@ -49,7 +49,7 @@
   function openLightbox(index){showLightbox(index);el("lightbox-dialog").showModal();}
   async function load(){
     el("notice").hidden=true;
-    const {data,error}=await window.sb.from("products").select("*, product_images(*)").order("created_at",{ascending:false});
+    const {data,error}=await window.sb.from("products").select("id,name,brand,ld,length,price,status,description,is_published,created_at,updated_at,product_images(*)").order("created_at",{ascending:false});
     if(error){el("notice").hidden=false;el("notice").textContent="Katalog belum dapat dimuat. Silakan coba beberapa saat lagi.";console.error(error);return;}
     products=data||[];renderBrands();render();
   }
