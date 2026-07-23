@@ -4,7 +4,7 @@
   const money = value => Number(value) > 0 ? new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(value) : "Hubungi penjual";
   const esc = value => String(value ?? "").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[c]);
   const camera = '<div class="photo-empty"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h3l1.3-2h7.4l1.3 2h3v11H4z"></path><circle cx="12" cy="13" r="3.2"></circle></svg><span>Foto segera hadir</span></div>';
-  let products = [];
+  let products = [],detailImages=[],detailProduct=null,detailIndex=0;
 
   function imageUrl(path){ return window.sb.storage.from("product-images").getPublicUrl(path).data.publicUrl; }
   function sortedImages(item){ return [...(item.product_images||[])].sort((a,b)=>a.sort_order-b.sort_order); }
@@ -15,8 +15,8 @@
     return rows;
   }
   function card(p){
-    const first=sortedImages(p)[0];
-    return `<article class="product-card"><div class="product-photo">${first?`<img src="${esc(imageUrl(first.image_path))}" alt="Foto ${esc(p.name)}" loading="lazy">`:camera}<span class="status">${esc(p.status)}</span></div><div class="product-copy"><p class="eyebrow">${esc(p.brand||"Koleksi")}</p><h3>${esc(p.name)}</h3><div class="sizes"><span>LD ${esc(p.ld)} cm</span><span>P ${esc(p.length)} cm</span></div><div class="product-bottom"><span class="price">${esc(money(p.price))}</span><button class="detail-button" type="button" data-detail="${esc(p.id)}">Detail</button></div></div></article>`;
+    const images=sortedImages(p),first=images[0];
+    return `<article class="product-card"><button class="product-photo" type="button" data-detail="${esc(p.id)}" aria-label="Lihat detail ${esc(p.name)}">${first?`<img src="${esc(imageUrl(first.image_path))}" alt="Foto ${esc(p.name)}" loading="lazy">`:camera}<span class="status">${esc(p.status)}</span>${images.length>1?`<span class="photo-count">▧ ${images.length} foto</span>`:""}</button><div class="product-copy"><p class="eyebrow">${esc(p.brand||"Koleksi")}</p><h3>${esc(p.name)}</h3><div class="sizes"><span>LD ${esc(p.ld)} cm</span><span>P ${esc(p.length)} cm</span></div><div class="product-bottom"><span class="price">${esc(money(p.price))}</span><button class="detail-button" type="button" data-detail="${esc(p.id)}">Detail</button></div></div></article>`;
   }
   function render(){
     const rows=visible();
@@ -33,21 +33,33 @@
   function openDetail(id){
     const p=products.find(row=>row.id===id);if(!p)return;
     const images=sortedImages(p),main=el("detail-main-photo"),thumbs=el("detail-thumbnails");
-    const show=path=>{main.innerHTML=path?`<img src="${esc(imageUrl(path))}" alt="Foto detail ${esc(p.name)}">`:camera;[...thumbs.children].forEach(b=>b.classList.toggle("active",b.dataset.path===path));};
-    thumbs.innerHTML=images.map((img,i)=>`<button type="button" data-path="${esc(img.image_path)}" aria-label="Lihat foto ${i+1}"><img src="${esc(imageUrl(img.image_path))}" alt=""></button>`).join("");
-    thumbs.onclick=e=>{const b=e.target.closest("button[data-path]");if(b)show(b.dataset.path);};
-    show(images[0]?.image_path||null);
+    detailImages=images;detailProduct=p;
+    const show=index=>{detailIndex=index;const path=images[index]?.image_path;main.innerHTML=path?`<button type="button" class="zoom-trigger" aria-label="Perbesar foto ${index+1}"><img src="${esc(imageUrl(path))}" alt="Foto detail ${esc(p.name)}"><span>⌕ Perbesar</span></button>`:camera;[...thumbs.children].forEach((b,i)=>b.classList.toggle("active",i===index));};
+    thumbs.innerHTML=images.map((img,i)=>`<button type="button" data-index="${i}" aria-label="Lihat foto ${i+1}"><img src="${esc(imageUrl(img.image_path))}" alt="Foto kecil ${i+1}"></button>`).join("");
+    thumbs.onclick=e=>{const b=e.target.closest("button[data-index]");if(b)show(Number(b.dataset.index));};
+    main.onclick=e=>{if(e.target.closest(".zoom-trigger"))openLightbox(detailIndex);};
+    show(0);
     el("detail-brand").textContent=p.brand||"Koleksi";el("detail-name").textContent=p.name;el("detail-price").textContent=money(p.price);el("detail-status").textContent=p.status;el("detail-ld").textContent=`${p.ld} cm`;el("detail-length").textContent=`${p.length} cm`;el("detail-description").textContent=p.description||"Detail tambahan dapat ditanyakan langsung kepada penjual.";
     el("detail-dialog").showModal();
   }
+  function showLightbox(index){
+    if(!detailImages.length)return;detailIndex=(index+detailImages.length)%detailImages.length;
+    el("lightbox-image").src=imageUrl(detailImages[detailIndex].image_path);el("lightbox-image").alt=`Foto ${detailIndex+1} ${detailProduct?.name||"produk"}`;el("lightbox-image").classList.remove("zoomed");el("lightbox-counter").textContent=`${detailIndex+1} / ${detailImages.length}`;const many=detailImages.length>1;el("lightbox-previous").hidden=!many;el("lightbox-next").hidden=!many;
+  }
+  function openLightbox(index){showLightbox(index);el("lightbox-dialog").showModal();}
   async function load(){
     el("notice").hidden=true;
-    const {data,error}=await window.sb.from("products").select("*, product_images(*)").order("created_at",{ascending:false});
+    const {data,error}=await window.sb.from("products").select("id,name,brand,ld,length,price,status,description,is_published,created_at,updated_at,product_images(*)").order("created_at",{ascending:false});
     if(error){el("notice").hidden=false;el("notice").textContent="Katalog belum dapat dimuat. Silakan coba beberapa saat lagi.";console.error(error);return;}
     products=data||[];renderBrands();render();
   }
   el("open-search").onclick=()=>{el("search").focus();el("koleksi").scrollIntoView();};
   el("close-detail").onclick=()=>el("detail-dialog").close();
+  el("close-lightbox").onclick=()=>el("lightbox-dialog").close();
+  el("lightbox-previous").onclick=()=>showLightbox(detailIndex-1);
+  el("lightbox-next").onclick=()=>showLightbox(detailIndex+1);
+  el("lightbox-image").onclick=event=>event.currentTarget.classList.toggle("zoomed");
+  el("lightbox-dialog").addEventListener("keydown",event=>{if(event.key==="ArrowLeft")showLightbox(detailIndex-1);if(event.key==="ArrowRight")showLightbox(detailIndex+1);});
   el("product-grid").onclick=e=>{const b=e.target.closest("[data-detail]");if(b)openDetail(b.dataset.detail);};
   ["search","brand-filter","status-filter","sort"].forEach(id=>el(id).addEventListener(id==="search"?"input":"change",render));
   load();

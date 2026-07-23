@@ -1,4 +1,4 @@
-const CACHE="suka-berbusana-v4";
+const CACHE="suka-berbusana-v6-prices";
 const ASSETS=["./","./index.html","./styles.css","./buyer.js","./admin.html","./admin.css","./admin.js","./supabase-config.js","./manifest.webmanifest","./logo-suka-berbusana.png"];
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
