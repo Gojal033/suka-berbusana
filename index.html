@@ -82,6 +82,16 @@
     </div>
   </dialog>
 
+  <dialog id="lightbox-dialog" class="lightbox-dialog" aria-label="Foto produk layar penuh">
+    <button class="lightbox-close" id="close-lightbox" type="button" aria-label="Tutup foto">×</button>
+    <button class="lightbox-nav previous" id="lightbox-previous" type="button" aria-label="Foto sebelumnya">‹</button>
+    <div class="lightbox-stage" id="lightbox-stage">
+      <img id="lightbox-image" alt="Foto produk diperbesar">
+    </div>
+    <button class="lightbox-nav next" id="lightbox-next" type="button" aria-label="Foto berikutnya">›</button>
+    <div class="lightbox-caption"><span id="lightbox-counter"></span><small>Ketuk foto untuk zoom · gunakan panah untuk melihat foto lain</small></div>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./supabase-config.js"></script>
   <script src="./buyer.js"></script>
