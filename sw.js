@@ -1,5 +1,73 @@
-const CACHE="suka-berbusana-v6-prices";
-const ASSETS=["./","./index.html","./styles.css","./buyer.js","./admin.html","./admin.css","./admin.js","./supabase-config.js","./manifest.webmanifest","./logo-suka-berbusana.png"];
-self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
-self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
-self.addEventListener("fetch",event=>{if(event.request.method!=="GET")return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;event.respondWith(fetch(event.request).then(response=>{const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));return response;}).catch(()=>caches.match(event.request).then(cached=>cached||(event.request.mode==="navigate"?caches.match("./index.html"):undefined))));});
+const CACHE = "suka-berbusana-v7-published-filter";
+
+const ASSETS = [
+  "./",
+  "./index.html",
+  "./styles.css",
+  "./buyer.js",
+  "./admin.html",
+  "./admin.css",
+  "./admin.js",
+  "./supabase-config.js",
+  "./manifest.webmanifest",
+  "./logo-suka-berbusana.png"
+];
+
+self.addEventListener("install", event => {
+  event.waitUntil(
+    caches
+      .open(CACHE)
+      .then(cache => cache.addAll(ASSETS))
+      .then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches
+      .keys()
+      .then(keys =>
+        Promise.all(
+          keys
+            .filter(key => key !== CACHE)
+            .map(key => caches.delete(key))
+        )
+      )
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener("fetch", event => {
+  if (event.request.method !== "GET") {
+    return;
+  }
+
+  const url = new URL(event.request.url);
+
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        const copy = response.clone();
+
+        caches
+          .open(CACHE)
+          .then(cache => cache.put(event.request, copy));
+
+        return response;
+      })
+      .catch(() =>
+        caches.match(event.request).then(cached => {
+          return (
+            cached ||
+            (event.request.mode === "navigate"
+              ? caches.match("./index.html")
+              : undefined)
+          );
+        })
+      )
+  );
+});
